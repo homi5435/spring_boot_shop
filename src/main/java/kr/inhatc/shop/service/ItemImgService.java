@@ -1,6 +1,7 @@
 package kr.inhatc.shop.service;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import kr.inhatc.shop.entity.ItemImg;
 import kr.inhatc.shop.repository.ItemImgRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,4 +37,22 @@ public class ItemImgService {
         itemImgRepository.save(itemImg);
     }
 
+    public void updateItemImg(Long itemImgId, MultipartFile itemImgFile) throws IOException {
+        if(!itemImgFile.isEmpty()){
+            ItemImg itemImg = itemImgRepository.findById(itemImgId).orElseThrow(EntityNotFoundException::new);
+
+            if(!StringUtils.isEmpty(itemImg.getImgName())){
+                fileService.deleteFile(itemImgLocation + "/" + itemImg.getImgName());
+            }
+            String oriImgName = itemImgFile.getOriginalFilename();
+            String imgName = "";
+            String imgUrl = "";
+
+            if (!StringUtils.isEmpty(oriImgName)){
+                imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
+                imgUrl = "/images/item/" + imgName;
+            }
+            itemImg.updateItemImg(imgName, oriImgName, imgUrl); //dirty checking
+        }
+    }
 }
